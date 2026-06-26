@@ -3,7 +3,6 @@ from . import (
     physics,
     probability
 )
-from .classes import *
 from .constants import *
 from .convert import *
 from .convertion_to_spec_base import *

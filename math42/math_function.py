@@ -4,9 +4,6 @@ from string import ascii_lowercase
 
 from ._utils import number, raise_if
 
-import numpy as np
-import matplotlib.pyplot as plt
-
 
 class MathFunction:
     def __init__(self, func: Callable[[number], number]) -> None:
@@ -22,6 +19,9 @@ class MathFunction:
             color: str = 'blue',
             __show: bool = True
     ):
+
+        import numpy as np
+        import matplotlib.pyplot as plt
 
         start, stop, points = line_space
         if points <= 0:

@@ -1,1 +1,1 @@
-print("h")
+import math42
