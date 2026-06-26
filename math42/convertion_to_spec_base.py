@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Union
 from abc import ABC, abstractmethod
 
-from .._utils import number, raise_if
+from ._utils import number, raise_if
 
 
 class NumberBaseSystem(ABC):
@@ -117,8 +117,8 @@ class NumberBaseSystem(ABC):
         )
 
 
-Binary: type = NumberBaseSystem.build('Binary', 2)
-Octal: type = NumberBaseSystem.build('Octal', 8)
-Duodecimal: type = NumberBaseSystem.build('Duodecimal', 12)
-Hexadecimal: type = NumberBaseSystem.build('Hexadecimal', 16)
-Sexagesimal: type = NumberBaseSystem.build('Sexagesimal', 60)
+# Binary: type = NumberBaseSystem.build('Binary', 2)
+# Octal: type = NumberBaseSystem.build('Octal', 8)
+# Duodecimal: type = NumberBaseSystem.build('Duodecimal', 12)
+# Hexadecimal: type = NumberBaseSystem.build('Hexadecimal', 16)
+# Sexagesimal: type = NumberBaseSystem.build('Sexagesimal', 60)

@@ -1,6 +1,6 @@
-from .._math42._convertion_bases import units
-from .._utils import number
-from .._utils.meta import MetaUninitializable
+from ._math42.convertion_bases import units
+from ._utils import number
+from ._utils.meta import MetaUninitializable
 from typing import Callable
 from functools import wraps
 
@@ -125,4 +125,3 @@ class Convert(metaclass=MetaUninitializable):
             2.0
         """
         return from_, to, num
-

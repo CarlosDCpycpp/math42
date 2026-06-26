@@ -2,8 +2,9 @@ from typing import (
     final,
     Final
 )
-from .._utils.meta import MetaUninitializable
-from .._utils import number
+from ._utils.meta import MetaUninitializable
+from ._utils import number
+
 
 @final
 class Const(metaclass=MetaUninitializable):

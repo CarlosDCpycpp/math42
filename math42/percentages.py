@@ -1,6 +1,6 @@
-from .._utils import number
-from .._utils.meta import MetaUninitializable
-from ._funcs import rule_of_3
+from ._utils import number
+from ._utils.meta import MetaUninitializable
+from .funcs import rule_of_3
 
 
 __all__: list[str] = ['Percentage']

@@ -1,10 +1,9 @@
 import string as _string
 import collections.abc as _c
-from functools import wraps
 
-from .._math42._fibonacci import Fibonacci
-from .._utils import number
-from .._utils.meta import MetaUninitializable
+from .fibonacci import Fibonacci
+from ._utils import number
+from ._utils.meta import MetaUninitializable
 
 
 __all__: list[str] = ['Generators']

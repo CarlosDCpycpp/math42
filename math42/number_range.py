@@ -1,6 +1,6 @@
 from typing import Generator
-from ._math42._infinity_bases import InfinityBases  # NOQA
-from ._math42._infinity import Infinity
+from ._math42.infinity_bases import InfinityBases  # NOQA
+from .infinity import Infinity
 
 
 __all__: list[str] = ['NumberRange']

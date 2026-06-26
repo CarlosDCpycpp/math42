@@ -19,7 +19,7 @@ class InfinityBases(metaclass=(meta_limit(2))):
             case 'word' | 'w':
                 return 'Infinity' if self._pos else '-Infinity'
 
-            case 'symbol':
+            case 'symbol' | 's':
                 return '∞' if self._pos else '-∞'
 
             case 'word_sp' | 'wsp':
@@ -32,7 +32,7 @@ class InfinityBases(metaclass=(meta_limit(2))):
                 return 'Positive ∞' if self._pos else 'Negative ∞'
 
             case 'sp':
-                return '+∞' if self._pos else self.__str__()
+                return f'{'+' if self._pos else '-'}∞'
 
             case '_':
                 return f'{'positive' if self._pos else 'negative'} infinity'
@@ -48,7 +48,9 @@ class InfinityBases(metaclass=(meta_limit(2))):
 
     # comparators
     def __eq__(self, other):
-        return isinstance(other, InfinityBases) and self._pos == other._pos
+        if not isinstance(other, InfinityBases):
+            return False
+        return self._pos == other._pos
 
     def __ne__(self, other):
         return not self.__eq__(other)

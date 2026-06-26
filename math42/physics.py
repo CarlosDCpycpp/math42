@@ -4,19 +4,19 @@ from ._utils import number
 __all__: list[str] = ['speed', 'time', 'distance', 'force', 'weight', 'space_travelled']
 
 
-def speed(distance: number, time: number) -> number:
+def speed(distance: number, time: number) -> number:  # NoQA
     """Calculates the speed.
     Takes distance and time as arguments."""
     return distance / time
 
 
-def time(distance: number, speed: number) -> number:
+def time(distance: number, speed: number) -> number:  # NoQA
     """Calculates the time.
     Takes distance and speed as arguments."""
     return distance / speed
 
 
-def distance(speed: number, time: number) -> number:
+def distance(speed: number, time: number) -> number:  # NoQA
     """Calculates the distance.
     Takes speed and time as arguments."""
     return speed * time

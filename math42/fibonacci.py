@@ -1,5 +1,5 @@
-from .._utils.meta import MetaUninitializable
-from ._funcs import is_prime, is_even, is_odd
+from ._utils.meta import MetaUninitializable
+from .funcs import is_prime, is_even, is_odd
 from collections.abc import (
     Generator,
     Callable

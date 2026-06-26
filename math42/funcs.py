@@ -1,8 +1,7 @@
-import math
-from typing import Callable, NoReturn
+from typing import Callable, Optional
 from math import gcd
-from functools import cache, wraps
-from .._utils import number
+from functools import cache
+from ._utils import number
 
 
 __all__: list[str] = [
@@ -86,15 +85,25 @@ def is_prime(num: int) -> bool:
 
 
 @cache
-def summation(n: int, i: int = 1) -> int:
-    return sum(range(i, int(n) + 1))
+def summation(n: int, i: int = 1, f: Optional[Callable] = None) -> int:
+    if f is None:
+        f = lambda x: x  # NoQA
 
-
-# @cache
-def product(n: int, i: int = 1) -> int:
     result: int = 1
     for num in range(i, int(n) + 1):
-        result *= num
+        result += f(num)
+    return result
+
+
+@cache
+# @cache
+def product(n: int, i: int = 1, f: Optional[Callable] = None) -> int:
+    if f is None:
+        f = lambda x: x  # NoQA
+
+    result: int = 1
+    for num in range(i, int(n) + 1):
+        result *= f(num)
     return result
 
 
