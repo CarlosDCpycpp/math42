@@ -53,6 +53,18 @@ def _remove_dups(lst: list) -> list:
         raise TypeError("All elements on target list must be hashable.")
 
 
+def reduct_num(n: number) -> int | float:
+    if int(n) == float(n):
+        return int(n)
+    return float(n)
+
+
+def reduct_num_dec(f: Callable) -> Callable:
+    def wrapper(*args, **kwargs) -> number:
+        return reduct_num(f(*args, **kwargs))
+    return wrapper
+
+
 class HashEqualComparable:
     def __eq__(self, other):
         return (hash(self) == hash(other)) and (type(self) is type(other))

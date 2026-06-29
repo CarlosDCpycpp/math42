@@ -1,5 +1,5 @@
 from ._math42.convertion_bases import units
-from ._utils import number
+from ._utils import number, raise_if
 from ._utils.meta import MetaUninitializable
 from typing import Callable
 from functools import wraps
@@ -18,8 +18,10 @@ class Convert(metaclass=MetaUninitializable):
             from_, to, num = func(*args, **kwargs)
             unit_type = func.__name__
 
-            if from_ not in units[unit_type] or to not in units[unit_type][from_]:
-                raise TypeError(f"Either '{from_}' or '{to}' is not a recognized unit for {unit_type}.")
+            raise_if(
+                TypeError(f"Either '{from_}' or '{to}' is not a recognized unit for {unit_type}."),
+                from_ not in units[unit_type] or to not in units[unit_type][from_]
+            )
 
             return num * units[unit_type][from_][to]
         return wrapper

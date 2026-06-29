@@ -1,13 +1,16 @@
+from __future__ import annotations
 from collections.abc import Callable
-from enum import Enum
-from string import ascii_lowercase
 
-from ._utils import number, raise_if
+from ._utils import number, raise_if, reduct_num, reduct_num_dec
 
 
 class MathFunction:
     def __init__(self, func: Callable[[number], number]) -> None:
-        self.func = func
+        self._func = func
+
+    @property
+    def func(self) -> Callable[[number], number]:
+        return self._func
 
     def __call__(self, item) -> number:
         return self.func(item)
@@ -24,9 +27,10 @@ class MathFunction:
         import matplotlib.pyplot as plt
 
         start, stop, points = line_space
-        if points <= 0:
-            raise ValueError("Line space must have a positive number of points.")
-
+        raise_if(
+            ValueError("Line space must have a positive number of points."),
+            points <= 0
+        )
         x = np.linspace(start, stop, points)
         y = [self.func(float(value)) for value in x]
 
@@ -58,63 +62,112 @@ class MathFunction:
 
 
 class PolynomialFunc(MathFunction):
-    def __init__(self, *coefs: number):  # NoQA
-        raise_if(
-            ValueError("Polynomials of degree greater than 26 are not supported."),
-            len(coefs) > 26
-        )
-        self._coefs: list = [0 for _ in range(26)]
-        for i, coef in enumerate(coefs):
-            self._coefs[i] = coef
+    def __init__(self, degree_coef_dict: dict[number, number]):  # NoQA
+        self._degree_coef_dict = {reduct_num(i): reduct_num(degree_coef_dict[i]) for i in sorted(degree_coef_dict.keys())}
 
     @property
-    def func(self) -> number:
-        return lambda x: sum(v * (x**i) for i, v in enumerate(self.coefs.values()))
+    def degree(self) -> number:
+        return list(self._degree_coef_dict.keys())[-1]
 
     @property
-    def coefs(self) -> dict[str, number]:
-        return {
-            ascii_lowercase[i]: self._coefs[i]
-            for i in range(len(self._coefs)+1)
-        }
-
-    @property
-    def degree(self) -> int:
-        return len(self.coefs.keys())
-
-    def __getitem__(self, item: str) -> number:
-        return self.coefs.get(item, 0)
-
-    def __setitem__(self, key: str, value: number) -> None:
-        raise_if(
-            ValueError("Invalid key; key must contain only one char."),
-            len(key) != 1
-        )
-        self._coefs[ascii_lowercase.index(key)] = value
-
-
-class LinearFunc(MathFunction):
-
-    def __init__(self, a: number, b: number) -> None:  # NoQA
-        self._a, self._b = a, b
-
-    @property
-    def a(self) -> number: return self._a
-
-    @property
-    def b(self) -> number: return self._b
+    def _dc_iter(self):
+        return {reduct_num(i): reduct_num(self._degree_coef_dict[i]) for i in sorted(self._degree_coef_dict.keys())[::-1]}.items()
 
     @property
     def func(self) -> Callable[[number], number]:
-        return lambda x: self.a * x + self.b
+        return lambda x: sum([c * (x**d) for d, c in self._dc_iter])
+
+    def __str__(self):
+        return ' '.join(
+            (lambda lst: lst if lst[2] != '+' else [lst[i] for i in range(len(lst)) if i != 2])(
+                (f"y ="
+                 f"{' '.join(
+                    (f" {'+' if c > 0 else ''} "
+                     + (f"{c if c != 1 else ''}x"
+                     f"{f'^{d}' if d != 1 else ''}" if d != 0 else str(c)))
+                    if c != 0 else ''
+                    for d, c in self._dc_iter
+                    )}")
+                .split())
+        ) if sum(self._degree_coef_dict.values()) != 0 else "y = 0"
+
+    @property
+    def derivative(self) -> PolynomialFunc:
+        return PolynomialFunc({d-1: c*d for d, c in self._dc_iter})
+
+    @property
+    def antiderivative(self) -> PolynomialFunc:
+        return PolynomialFunc({d+1: c/d for d, c in self._dc_iter})
+
+    @staticmethod
+    def _degree_var_return(degree: number) -> Callable:
+        return lambda _: reduct_num_dec(lambda s: s._degree_coef_dict[degree])  # NoQA
 
 
-class QuadFunc(MathFunction):
+class LinearFunc(PolynomialFunc):
+
+    def __init__(self, m: number, b: number) -> None:  # NoQA
+        self._degree_coef_dict = {0: b, 1: m}
+
+    @property
+    @PolynomialFunc._degree_var_return(1)
+    def m(self) -> number: pass  # NoQA
+
+    @property
+    @PolynomialFunc._degree_var_return(0)
+    def b(self) -> number: pass  # NoQA
+
+
+class QuadFunc(PolynomialFunc):
 
     def __init__(self, a: number, b: number, c: number) -> None:  # NoQA
-        self._a = a
-        pass
+        self._degree_coef_dict = {0: c, 1: b, 2: a}
 
-    class Types(Enum):
-        ABC = "ax^2+bx+c"
-        AHK = "a(x-h)^2+k"
+    @property
+    @PolynomialFunc._degree_var_return(2)
+    def a(self) -> number: pass  # NoQA
+
+    @property
+    @PolynomialFunc._degree_var_return(1)
+    def b(self) -> number: pass  # NoQA
+
+    @property
+    @PolynomialFunc._degree_var_return(0)
+    def c(self) -> number: pass  # NoQA
+
+    @classmethod
+    def akh_init(cls, a: number, k: number, h: number) -> QuadFunc:
+        return QuadFunc(
+            a=a,
+            b=-2*a*k,
+            c=a+(k**2)+h
+        )
+
+    @property
+    @reduct_num_dec
+    def k(self) -> number:
+        return -self.b/(2*self.a)
+
+    @property
+    @reduct_num_dec
+    def h(self) -> number:
+        return self.c - self.a * (self.k**2)
+
+    def __format__(self, format_spec: str) -> str:
+        match spec := format_spec.strip().lower():
+            case 'akh':
+                if self.a == 0:
+                    return f"y = {self.c}"
+                return (f"y = {self.a if self.a != 1 else ''}"
+                        f"{f'(x{'+' if self.k < 0 else '-'}{abs(self.k)})' if self.k != 0 else 'x'}^2"
+                        f"{f' {'+' if self.h > 0 else '-'}{abs(self.h)}' if self.h != 0 else ''}")
+
+            case 'abc':
+                return str(self)
+
+            case '':
+                return '(no specifier passed)'
+
+            case _:
+                return f'Unknown specifier: [{spec}]'
+
