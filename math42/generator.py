@@ -1,5 +1,5 @@
 import string as _string
-import collections.abc as _c
+from collections.abc import Generator
 
 from .fibonacci import Fibonacci
 from ._utils import number
@@ -12,7 +12,7 @@ __all__: list[str] = ['Generators']
 class Generators(metaclass=MetaUninitializable):
 
     @staticmethod
-    def fibonacci() -> _c.Generator[int]:
+    def fibonacci() -> Generator[int]:
         """Generates Fibonacci numbers starting from 0.
 
                 Each call returns the next element of the Fibonacci sequence.
@@ -30,14 +30,14 @@ class Generators(metaclass=MetaUninitializable):
         yield from Fibonacci.generator()
 
     @staticmethod
-    def basic(start: int = 1) -> _c.Generator[int]:
+    def basic(start: int = 1) -> Generator[int]:
         i = start
         while True:
             yield i
             i += 1
 
     @staticmethod
-    def prime() -> _c.Generator[int]:
+    def prime() -> Generator[int]:
         """Each call generates the next prime number."""
         num = 2
         while True:
@@ -47,7 +47,7 @@ class Generators(metaclass=MetaUninitializable):
             num += 1
 
     @staticmethod
-    def roots(root: int, start: int = 1) -> _c.Generator[number]:
+    def roots(root: int, start: int = 1) -> Generator[number]:
         """Returns the x root of the consecutive integers (starting from the "start" variable,
         which, by default, is 0)."""
         n = start
@@ -56,14 +56,14 @@ class Generators(metaclass=MetaUninitializable):
             n += 1
 
     @staticmethod
-    def countdown(start: int) -> _c.Generator[int]:
+    def countdown(start: int) -> Generator[int]:
         """Each call return the last call's return minus 1, the first call returns the start."""
         while start >= 0:
             yield start
             start -= 1
 
     @staticmethod
-    def powers(exponent: int) -> _c.Generator[int]:
+    def powers(exponent: int) -> Generator[int]:
         """Generates the x power of consecutive integers."""
         n = 1
         while True:
@@ -71,20 +71,20 @@ class Generators(metaclass=MetaUninitializable):
             n += 1
 
     @staticmethod
-    def alphabet(lower: bool = False) -> _c.Generator[str]:
+    def alphabet(lower: bool = False) -> Generator[str]:
         """Each call generates the next letter of the alphabet.
         If the "lower" variable is true (by default, is false), instead of uppercase letters
         the generator returns lowercase letters"""
         if lower:
-            x = _string.ascii_lowercase
+            tg_alphabet = _string.ascii_lowercase
         else:
-            x = _string.ascii_uppercase
+            tg_alphabet = _string.ascii_uppercase
 
-        for lt in x:
+        for lt in tg_alphabet:
             yield lt
 
     @staticmethod
-    def collatz(num: int) -> _c.Generator[int]:
+    def collatz(num: int) -> Generator[int]:
         """Generates the collatz sequence starting from the "num" variable (including)."""
         while num != 1:
             yield num

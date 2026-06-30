@@ -5,6 +5,8 @@ from typing import (
 from ._utils.meta import MetaUninitializable
 from ._utils import number
 
+__all__: list[str] = ['Const']
+
 
 @final
 class Const(metaclass=MetaUninitializable):

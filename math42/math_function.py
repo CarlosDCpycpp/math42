@@ -1,10 +1,12 @@
 from __future__ import annotations
 from collections.abc import Callable
 
-from ._utils import number, raise_if, reduct_num, reduct_num_dec
+from ._utils import number, raise_if, reduct_num
+
+__all__: list[str] = ['MathFunc', 'PolynomialFunc', 'LinearFunc', 'QuadFunc']
 
 
-class MathFunction:
+class MathFunc:
     def __init__(self, func: Callable[[number], number]) -> None:
         self._func = func
 
@@ -61,7 +63,7 @@ class MathFunction:
         ).savefig(fname=file_name)
 
 
-class PolynomialFunc(MathFunction):
+class PolynomialFunc(MathFunc):
     def __init__(self, degree_coef_dict: dict[number, number]):  # NoQA
         self._degree_coef_dict = {reduct_num(i): reduct_num(degree_coef_dict[i]) for i in sorted(degree_coef_dict.keys())}
 
@@ -101,7 +103,15 @@ class PolynomialFunc(MathFunction):
 
     @staticmethod
     def _degree_var_return(degree: number) -> Callable:
-        return lambda _: reduct_num_dec(lambda s: s._degree_coef_dict[degree])  # NoQA
+        return lambda _: reduct_num(lambda s: s._degree_coef_dict[degree])  # NoQA
+
+    def __eq__(self, other: MathFunc):
+        if not isinstance(other, PolynomialFunc):
+            return False
+        return self._dc_iter == other._dc_iter
+
+    def __ne__(self, other: MathFunc):
+        return not self.__eq__(other)
 
 
 class LinearFunc(PolynomialFunc):
@@ -144,12 +154,12 @@ class QuadFunc(PolynomialFunc):
         )
 
     @property
-    @reduct_num_dec
+    @reduct_num
     def k(self) -> number:
         return -self.b/(2*self.a)
 
     @property
-    @reduct_num_dec
+    @reduct_num
     def h(self) -> number:
         return self.c - self.a * (self.k**2)
 
@@ -170,4 +180,3 @@ class QuadFunc(PolynomialFunc):
 
             case _:
                 return f'Unknown specifier: [{spec}]'
-

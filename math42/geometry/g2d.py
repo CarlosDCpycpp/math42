@@ -1,22 +1,34 @@
 from __future__ import annotations
-from .._utils import number, raise_if
+from .angle_units import AngleUnits
+from .._math42.angle_unit_bases import AngleUnitBase
+from .._utils import number, raise_if, reduct_num, from_private_attr, exclusive_to
 from ..math_function import LinearFunc
 from ..infinity import Infinity
 from typing import Final
+from math import pi, acos
 
 
-__all__: list[str] = ['Point2D', 'Line2D', 'LineSegment2D', "Ray2D", 'Vector2D']
-# TODO: add:
-#           circles
-#           segment circles
-#           regular polygons
+__all__: list[str] = [
+    'Point2D', 'Vector2D',
+    'Line2D', 'LineSegment2D', 'Ray2D',
+    'Circle', 'Circumference', 'Arc'
+                      ]
+# TODO: add regular polygons
 
 
 class Point2D:
 
     def __init__(self, x: number = 0, y: number = 0) -> None:
-        self.x = x
-        self.y = y
+        self._x = x
+        self._y = y
+
+    @property
+    @from_private_attr
+    def x(self) -> number: pass  # NoQA
+
+    @property
+    @from_private_attr
+    def y(self) -> number: pass  # NoQA
 
     ORIGIN: Final[Point2D]  # NoQA
 
@@ -41,8 +53,7 @@ class Point2D:
             return self + (-other)
 
     def __isub__(self, other: Vector2D):
-        self.x -= other.x
-        self.y -= other.y
+        return self - other
 
     def __add__(self, other: Point2D | Vector2D) -> Vector2D | Point2D:
         if isinstance(other, Point2D):
@@ -51,8 +62,7 @@ class Point2D:
             return Point2D(self.x+other.x, self.y+other.y)
 
     def __iadd__(self, other: Vector2D):
-        self.x += other.x
-        self.y += other.y
+        return self + other
 
     def __eq__(self, other: Point2D):
         return self.x == other.x and self.y == other.y
@@ -60,8 +70,16 @@ class Point2D:
 
 class Line2D:
     def __init__(self, slope: number, y_intercept: number):
-        self.slope = slope
-        self.y_intercept = y_intercept
+        self._slope = slope
+        self._y_intercept = y_intercept
+
+    @property
+    @from_private_attr
+    def slope(self) -> number: pass  # NoQA
+
+    @property
+    @from_private_attr
+    def y_intercept(self) -> number: pass  # NoQA
 
     def __str__(self):
         return f"y = {self.slope}x + {self.y_intercept}"
@@ -91,6 +109,24 @@ class Line2D:
             case _:
                 return f'Unknown specifier: [{spec}]'
 
+    def __add__(self, other: Vector2D) -> Line2D:
+        return Line2D(self.slope, self.y_intercept+(other.y-other.x))
+
+    def __sub__(self, other: Vector2D) -> Line2D:
+        return self + (-other)
+
+    def __iadd__(self, other: Vector2D) -> Line2D:
+        return self + other
+
+    def __isub__(self, other: Vector2D) -> Line2D:
+        return self - other
+
+    def __eq__(self, other: Line2D):
+        return self.slope == other.slope and self.y_intercept == other.y_intercept
+
+    def __ne__(self, other: Line2D):
+        return not self.__eq__(other)
+
 
 class Ray2D(Line2D):
     def __init__(  # NoQA
@@ -100,13 +136,29 @@ class Ray2D(Line2D):
             direction: bool = True,
             including: bool = True
     ):
-        self.slope: number = slope
-        self.edge: Point2D = p
-        self.including: bool = including
+        self._slope: number = slope
+        self._edge: Point2D = p
+        self._including: bool = including
 
         # True -> to +inf
         # False -> to -inf
-        self.direction: bool = direction
+        self._direction: bool = direction
+
+    @property
+    @from_private_attr
+    def slope(self) -> number: pass  # NoQA
+
+    @property
+    @from_private_attr
+    def edge(self) -> Point2D: pass  # NoQA
+
+    @property
+    @from_private_attr
+    def including(self) -> bool: pass  # NoQA
+
+    @property
+    @from_private_attr
+    def direction(self) -> bool: pass  # NoQA
 
     @property
     def line(self) -> Line2D:
@@ -115,10 +167,6 @@ class Ray2D(Line2D):
     @property
     def y_intercept(self) -> number:
         return self.edge.y - self.slope*self.edge.x
-
-    @y_intercept.setter
-    def y_intercept(self, value: number):
-        self.slope = (self.edge.y - value)/self.edge.x
 
     def __str__(self):
         return (f'{self.line!s}, x ∈ '
@@ -129,7 +177,28 @@ class Ray2D(Line2D):
 
     def __contains__(self, item: Point2D):
         return (self.func(item.x) == item.y) and\
-            (item.x.__ge__ if (self.direction == True) else item.x.__le__)(self.edge.x)  # NoQA
+            (item.x.__ge__ if self.direction else item.x.__le__)(self.edge.x)
+
+    def __add__(self, other: Vector2D) -> Ray2D:
+        return Ray2D(self.slope, self.edge+other, self.direction, self.including)
+
+    def __sub__(self, other: Vector2D) -> Ray2D:
+        return self + (-other)
+
+    def __iadd__(self, other: Vector2D) -> Ray2D:
+        return self + other
+
+    def __isub__(self, other: Vector2D) -> Ray2D:
+        return self + other
+
+    def __eq__(self, other: Ray2D):
+        return self.line == other.line \
+            and self.edge == other.edge \
+            and self.including == other.including \
+            and self.direction == other.direction
+
+    def __ne__(self, other: Ray2D):
+        return not self.__eq__(other)
 
 
 class LineSegment2D:
@@ -158,10 +227,22 @@ class LineSegment2D:
         return f"{self.line!s}, x∈[{self.p1.x}, {self.p2.x}]"
 
     def __eq__(self, other: LineSegment2D):
-        return str(self) == str(other)
+        return self.p1 == other.p1 and self.p2 == other.p2
 
     def __ne__(self, other: LineSegment2D):
-        return not self == other
+        return not self.__eq__(other)
+
+    def __add__(self, other: Vector2D) -> LineSegment2D:
+        return LineSegment2D(self.p1+other, self.p2+other)
+
+    def __sub__(self, other: Vector2D) -> LineSegment2D:
+        return self + (-other)
+
+    def __iadd__(self, other: Vector2D) -> LineSegment2D:
+        return self + other
+
+    def __isub__(self, other: Vector2D) -> LineSegment2D:
+        return self - other
 
 
 class Vector2D:
@@ -173,11 +254,19 @@ class Vector2D:
         tp = type(v1)
 
         if tp == number:
-            self.x = v1
-            self.y = v2
+            self._x = v1
+            self._y = v2
         elif tp == Point2D:
-            self.x = v2.x-v1.x
-            self.y = v2.y-v1.y
+            self._x = v2.x-v1.x
+            self._y = v2.y-v1.y
+
+    @property
+    @from_private_attr
+    def x(self) -> number: pass  # NoQA
+
+    @property
+    @from_private_attr
+    def y(self) -> number: pass  # NoQA
 
     @property
     def point(self) -> Point2D:
@@ -199,7 +288,182 @@ class Vector2D:
     def __ne__(self, other: Vector2D):
         return not self == other
 
+    def __add__(self, other: Vector2D) -> Vector2D:
+        return Vector2D(self.x+other.x, self.y+other.y)
+
+    def __sub__(self, other: Vector2D) -> Vector2D:
+        return self + (-other)
+
+    def __iadd__(self, other: Vector2D) -> Vector2D:
+        return self + other
+
+    def __isub__(self, other: Vector2D) -> Vector2D:
+        return self - other
+
 
 @lambda _: _()
 def _setup() -> None:
     Point2D._setup_origin()  # NoQA
+
+
+class Circumference:
+    def __init__(self, center: Point2D, radius: number):
+        self._center = center
+        self._radius = radius
+
+    @property
+    @from_private_attr
+    def center(self) -> Point2D: pass  # NoQA
+
+    @property
+    @reduct_num
+    @from_private_attr
+    def radius(self) -> number: pass  # NoQA
+
+    @property
+    @reduct_num
+    def perimeter(self) -> number:
+        return 2*pi*self.radius
+
+    def __contains__(self, item: Point2D) -> bool:
+        return LineSegment2D(self.center, item).length == self.radius
+
+    def __str__(self):
+        return f"{self.__class__.__name__}(center={self.center!s}; radius={self.radius})"
+
+    @property
+    @exclusive_to('Circumference')
+    def circle(self) -> Circle:
+        return Circle(self.center, self.radius)
+
+    def __eq__(self, other: Circumference):
+        if type(self) is not type(other):
+            return False
+        return self.center == other.center and self.radius == other.radius
+
+    def __ne__(self, other: Circumference):
+        return not self.__eq__(other)
+
+    def __add__(self, other: Vector2D) -> Circumference:
+        return type(self)(self.center+other, self.radius)
+
+    def __sub__(self, other: Vector2D) -> Circumference:
+        return self + (-other)
+
+    def __iadd__(self, other: Vector2D) -> Circumference:
+        return self + other
+
+    def __isub__(self, other: Vector2D) -> Circumference:
+        return self - other
+
+
+class Circle(Circumference):
+
+    @property
+    def circumference(self) -> Circumference:
+        return Circumference(self.center, self.radius)
+
+    @property
+    @reduct_num
+    def area(self) -> number:
+        return pi * self.radius**2
+
+    def __contains__(self, item: Point2D) -> bool:
+        return LineSegment2D(self.center, item).length <= self.radius
+
+
+class Arc:
+    def __init__(
+            self,
+            circumference: Circumference | Circle,
+            start: number,
+            end: number,
+            angle_unit: AngleUnitBase = AngleUnits.RADIANT
+    ):
+        self._circumference = circumference if not isinstance(circumference, Circle) else circumference.circumference
+        self._angle_unit = angle_unit
+        raise_if(
+            ValueError("Arc start is greater than or equal to Arc end plus full rotation."),
+            start >= end + angle_unit.full_rotation
+        )
+        raise_if(
+            ValueError("Neither start nor end can be greater than or equal to double angle unit's full rotation"),
+            start >= angle_unit.full_rotation or end >= 2*angle_unit.full_rotation
+        )
+        self._start = start
+        self._end = end
+
+    @property
+    @exclusive_to('Arc')
+    def sector(self) -> Sector:
+        return Sector(self.circumference, self.start, self.end, self.angle_unit)
+
+    @property
+    @from_private_attr
+    def circumference(self) -> Circumference: pass  # NoQA
+
+    @property
+    def circle(self) -> Circle:
+        return self.circumference.circle
+
+    @property
+    @reduct_num
+    @from_private_attr
+    def start(self) -> number: pass  # NoQA
+
+    @property
+    @reduct_num
+    @from_private_attr
+    def end(self) -> number: pass  # NoQA
+
+    @property
+    @from_private_attr
+    def angle_unit(self) -> AngleUnitBase: pass  # NoQA
+
+    @property
+    @reduct_num
+    def amplitude(self) -> number:
+        return self.end - self.start
+
+    @property
+    @reduct_num
+    def length(self) -> number:
+        return self.circumference.perimeter * self.amplitude / self.angle_unit.full_rotation
+
+    def __str__(self):
+        return (f"{type(self).__name__}"
+                f"(center={self.circumference.center}, "
+                f"radius={self.circumference.radius}, "
+                f"interval=[{self.start}, {self.end}])")
+
+    def __contains__(self, item: Point2D):
+        return self.start <= acos(item.x/self.circumference.radius) <= self.end \
+            and item in self.circumference
+
+    def __add__(self, other: Vector2D) -> Arc:
+        return type(self)(self.circumference+other, self.start, self.end, self.angle_unit)
+
+    def __sub__(self, other: Vector2D) -> Arc:
+        return self + (-other)
+
+    def __iadd__(self, other: Vector2D) -> Arc:
+        return self + other
+
+    def __isub__(self, other: Vector2D) -> Arc:
+        return self - other
+
+
+class Sector(Arc):
+
+    @property
+    @reduct_num
+    def area(self) -> number:
+        return self.circle.area * self.amplitude / self.angle_unit.full_rotation
+
+    @property
+    def arc(self) -> Arc:
+        return Arc(self.circumference, self.start, self.end)
+
+    def __contains__(self, item: Point2D):
+        return self.start <= acos(item.x/self.circumference.radius) <= self.end \
+            and item in self.circle

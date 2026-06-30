@@ -2,7 +2,7 @@ from functools import cache
 from copy import copy
 
 
-__all__: list[str] = ['MetaUninitializable', 'meta_limit', 'StaticMeta', 'meta_fusion']
+__all__: list[str] = ['MetaUninitializable', 'meta_limit', 'meta_fusion']
 
 
 def meta_fusion(*classes: type[type]) -> type[type]:
@@ -32,11 +32,3 @@ def meta_limit(limit: int):
             return instance
 
     return copy(_MetaLimit)
-
-
-class StaticMeta(type):
-    def __new__(cls, name, bases, dct):
-        for attr_name, attr_value in dct.items():
-            if callable(attr_value):
-                dct[attr_name] = staticmethod(attr_value)
-        return super().__new__(cls, name, bases, dct)

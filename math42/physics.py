@@ -1,5 +1,5 @@
 from ._utils import number
-
+from .constants import Const
 
 __all__: list[str] = ['speed', 'time', 'distance', 'force', 'weight', 'space_travelled']
 
@@ -28,7 +28,7 @@ def force(mass: number, acceleration: number) -> number:
     return mass * acceleration
 
 
-def weight(mass: number, gravity: number = 9.1) -> number:
+def weight(mass: number, gravity: number = Const.GRAVITY_ON_EARTH) -> number:
     """Calculates the weight.
     Takes mass and gravity as arguments.
     (gravity is, by default, 9.8, however can be altered by being passed as an argument.)"""

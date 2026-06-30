@@ -46,7 +46,6 @@ class NumberRange:
                 while True:
                     for j in self.jump:
                         yield j
-            return
 
         jumps = _jump_gen()
         flag = False

@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 
 from ._utils import number, raise_if
 
+__all__: list[str] = ['NumberBaseSystem']
+
 
 class NumberBaseSystem(ABC):
 

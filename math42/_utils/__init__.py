@@ -53,21 +53,30 @@ def _remove_dups(lst: list) -> list:
         raise TypeError("All elements on target list must be hashable.")
 
 
-def reduct_num(n: number) -> int | float:
-    if int(n) == float(n):
-        return int(n)
-    return float(n)
+def reduct_num(nf: number | Callable) -> int | float | Callable:
+    if isinstance(nf, Callable):
+        def wrapper(*args, **kwargs) -> number:
+            return reduct_num(nf(*args, **kwargs))
+        return wrapper
+
+    if int(nf) == float(nf):
+        return int(nf)
+    return float(nf)
 
 
-def reduct_num_dec(f: Callable) -> Callable:
-    def wrapper(*args, **kwargs) -> number:
-        return reduct_num(f(*args, **kwargs))
+def from_private_attr(f: Callable):
+    def wrapper(self: object) -> Any:
+        return self.__getattribute__(f"_{f.__name__}")
     return wrapper
 
 
-class HashEqualComparable:
-    def __eq__(self, other):
-        return (hash(self) == hash(other)) and (type(self) is type(other))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+def exclusive_to(cls_name: str):
+    def decorator(meth: Callable):
+        def wrapper(*args, **kwargs) -> Any:
+            raise_if(
+                TypeError(f"The {meth.__name__} method is exclusive to the {cls_name} class."),
+                type(args[0]).__name__ != cls_name
+            )
+            return meth(*args, **kwargs)
+        return wrapper
+    return decorator

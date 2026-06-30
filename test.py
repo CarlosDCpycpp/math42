@@ -1,8 +1,9 @@
-from math42 import *
+from math42.geometry import *
+from math import pi
 
-f = PolynomialFunc({
-    1: 3,
-    2: 8
-})
-g = QuadFunc(2, 0, 1)
-print(f'{g!s} || {g:akh}')
+cl = Circle(Point2D.ORIGIN, 5.0)
+cf = cl.circumference
+
+a = Arc(cf, 0, 0.25*pi)
+
+print(a.sector)

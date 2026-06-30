@@ -1,4 +1,5 @@
-from .._math42 import is_prime, Fibonacci
+from ..misc_funcs import is_prime
+from ..fibonacci import Fibonacci
 from typing import Generator
 
 

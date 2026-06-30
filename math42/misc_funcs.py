@@ -6,7 +6,7 @@ from ._utils import number
 
 __all__: list[str] = [
     'root', 'set_up_root', 'simplify_fraction', 'rule_of_3',
-    'is_even', 'is_odd', 'is_prime',
+    'is_even', 'is_odd', 'is_prime', 'is_div_by',
     'summation', 'product', 'big_union', 'big_intersection'
     ]
 
@@ -22,14 +22,11 @@ def root(base: number, root_: number = 2) -> number:
 
 @cache
 def set_up_root(root_: number) -> Callable[[number], number]:
-    f"""Returns a function that calculates a specific root.\n
+    """Returns a function that calculates a specific root.\n
     Example:\n
     > square_root = set_up_root(2)\n
     > x = square_root(16)  # 4"""
-
-    def _root_x(n: number) -> number:
-        return n**(1/root_)
-    return _root_x
+    return lambda n: n**(1/root_)
 
 
 @cache
