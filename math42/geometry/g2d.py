@@ -5,15 +5,14 @@ from .._utils import number, raise_if, reduct_num, from_private_attr, exclusive_
 from ..math_function import LinearFunc
 from ..infinity import Infinity
 from typing import Final
-from math import pi, acos
+from math import pi, cos, acos, tan, atan2, isclose
 
 
 __all__: list[str] = [
     'Point2D', 'Vector2D',
     'Line2D', 'LineSegment2D', 'Ray2D',
-    'Circle', 'Circumference', 'Arc'
+    'Circle', 'Circumference', 'Arc', 'Sector'
                       ]
-# TODO: add regular polygons
 
 
 class Point2D:
@@ -326,7 +325,7 @@ class Circumference:
         return 2*pi*self.radius
 
     def __contains__(self, item: Point2D) -> bool:
-        return LineSegment2D(self.center, item).length == self.radius
+        return isclose(LineSegment2D(self.center, item).length, self.radius)
 
     def __str__(self):
         return f"{self.__class__.__name__}(center={self.center!s}; radius={self.radius})"
@@ -369,7 +368,7 @@ class Circle(Circumference):
         return pi * self.radius**2
 
     def __contains__(self, item: Point2D) -> bool:
-        return LineSegment2D(self.center, item).length <= self.radius
+        return (d := LineSegment2D(self.center, item).length) <= self.radius or isclose(d, self.radius)
 
 
 class Arc:
@@ -467,3 +466,102 @@ class Sector(Arc):
     def __contains__(self, item: Point2D):
         return self.start <= acos(item.x/self.circumference.radius) <= self.end \
             and item in self.circle
+
+
+class RegularPolygonBoundary:
+    def __init__(
+            self,
+            number_of_sides: int,
+            side_length: number,
+            center: Point2D = Point2D.ORIGIN,
+            rotation: number = None,
+            angle_unit: AngleUnitBase = AngleUnits.RADIANT
+    ):
+        self._number_of_sides = number_of_sides
+        self._side_length = side_length
+        self._center = center
+        self._rotation = rotation if rotation is not None else pi/number_of_sides
+        self._angle_unit = angle_unit
+
+    @property
+    @from_private_attr
+    def number_of_sides(self) -> int: pass  # NoQA
+
+    @property
+    @reduct_num
+    @from_private_attr
+    def side_length(self) -> number: pass  # NoQA
+
+    @property
+    @from_private_attr
+    def center(self) -> Point2D: pass  # NoQA
+
+    @property
+    @reduct_num
+    def radius_length(self) -> number:
+        # r = l * sec(pi/n) & sec = 1/cos
+        return self.side_length * 1/cos(pi/self.number_of_sides)
+
+    @property
+    @reduct_num
+    @from_private_attr
+    def rotation(self) -> number: pass  # NoQA
+
+    @property
+    @from_private_attr
+    def angle_unit(self) -> AngleUnitBase: pass  # NoQA
+
+    @property
+    @exclusive_to('RegularPolygonBoundary')
+    def polygon(self) -> RegularPolygon:
+        return RegularPolygon(
+            self.number_of_sides,
+            self.side_length,
+            self.center,
+            self.rotation,
+            self.angle_unit
+        )
+
+    @property
+    @reduct_num
+    def apothem_length(self) -> number:
+        #          l
+        # a = -----------
+        #     4 tan(pi/n)
+        return self.side_length / (4 * tan(pi/self.number_of_sides))
+
+    @property
+    @reduct_num
+    def perimeter(self) -> number:
+        # P = n l
+        return self.side_length * self.number_of_sides
+
+    def __contains__(self, item: Point2D):
+        theta = atan2((item.x - self.center.x), (item.y - self.center.y)) + self.rotation
+        r_at_theta = self.radius_length * cos(pi/self.number_of_sides) / (cos(theta % (2*pi/self.number_of_sides) - pi/self.number_of_sides))
+        return r_at_theta == LineSegment2D(self.center, item).length
+
+
+class RegularPolygon(RegularPolygonBoundary):
+
+    @property
+    def boundary(self) -> RegularPolygonBoundary:
+        return RegularPolygonBoundary(
+            self.number_of_sides,
+            self.side_length,
+            self.center,
+            self.rotation,
+            self.angle_unit
+        )
+
+    @property
+    @reduct_num
+    def area(self) -> number:
+        # A = l a n /2
+        return self.side_length * self.apothem_length * self.number_of_sides / 2
+
+    def __contains__(self, item: Point2D):
+        theta = atan2((item.x - self.center.x), (item.y - self.center.y)) + self.rotation
+        r_at_theta = self.radius_length * cos(pi / self.number_of_sides) / (
+            cos(theta % (2 * pi / self.number_of_sides) - pi / self.number_of_sides))
+        return item in self.boundary or r_at_theta < LineSegment2D(self.center, item).length
